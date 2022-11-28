@@ -14,7 +14,6 @@ func InitLog() {
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
-	defer f.Close()
 
 	consoleWriter := zerolog.New(f).Level(zerolog.DebugLevel)
 	multi := zerolog.MultiLevelWriter(consoleWriter, os.Stdout)

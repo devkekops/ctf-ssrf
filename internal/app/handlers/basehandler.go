@@ -24,7 +24,7 @@ type BaseHandler struct {
 }
 
 func NewBaseHandler(client client.Client, flag string) *chi.Mux {
-	logger.Logger.Info().Msg("hello, hacker) this is your flag: " + flag)
+	logger.Logger.Info().Msg("hello again, ctf hacker :) this is your flag: " + flag)
 
 	cwd, _ := os.Getwd()
 	root := filepath.Join(cwd, "/static")
@@ -69,15 +69,19 @@ func (bh *BaseHandler) convert() http.HandlerFunc {
 func recordMetrics() {
 	go func() {
 		for {
-			opsProcessed.Inc()
+			fi, err := os.Stat("/tmp/log")
+			if err != nil {
+				logger.Logger.Err(err).Msg("")
+			}
+			opsProcessed.Set(float64(fi.Size()))
 			time.Sleep(2 * time.Second)
 		}
 	}()
 }
 
 var (
-	opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "myapp_processed_ops_total",
-		Help: "The total number of processed events",
+	opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "ctf_log_file_size",
+		Help: "Size of log file. Hello ctf hacker :) you need this file, check contents of /tmp/log",
 	})
 )

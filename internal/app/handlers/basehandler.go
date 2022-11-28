@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/devkekops/ctf-ssrf/internal/app/client"
@@ -59,8 +57,6 @@ func NewBaseHandler(client client.Client, flag string) *chi.Mux {
 
 	recordMetrics()
 
-	bh.mux.Use(middleware.Logger)
-
 	bh.mux.Handle("/*", fs)
 	bh.mux.Get("/convert", bh.convert())
 	bh.mux.Handle("/metrics", promhttp.Handler())
@@ -71,7 +67,6 @@ func NewBaseHandler(client client.Client, flag string) *chi.Mux {
 func (bh *BaseHandler) convert() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		logger.Logger.Info().Msg(req.Method + " " + req.RequestURI)
-		log.Println(req.Method + " " + req.RequestURI)
 
 		url := req.URL.Query().Get("url")
 

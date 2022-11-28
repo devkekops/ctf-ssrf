@@ -25,14 +25,14 @@ type BaseHandler struct {
 var (
 	opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "ctf_log_file_size",
-		Help: "Size of log file. Hello ctf hacker :) you need this file, check contents of /tmp/log",
+		Help: "Size of log file. Hello ctf hacker :) you need this file, check contents of /tmp/log.txt",
 	})
 )
 
 func recordMetrics() {
 	go func() {
 		for {
-			fi, err := os.Stat("/tmp/log")
+			fi, err := os.Stat("/tmp/log.txt")
 			if err != nil {
 				logger.Logger.Err(err).Msg("")
 			}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -21,6 +22,26 @@ type BaseHandler struct {
 	mux    *chi.Mux
 	fs     http.Handler
 	client client.Client
+}
+
+var (
+	opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "ctf_log_file_size",
+		Help: "Size of log file. Hello ctf hacker :) you need this file, check contents of /tmp/log",
+	})
+)
+
+func recordMetrics() {
+	go func() {
+		for {
+			fi, err := os.Stat("/tmp/log")
+			if err != nil {
+				logger.Logger.Err(err).Msg("")
+			}
+			opsProcessed.Set(float64(fi.Size()))
+			time.Sleep(2 * time.Second)
+		}
+	}()
 }
 
 func NewBaseHandler(client client.Client, flag string) *chi.Mux {
@@ -49,6 +70,9 @@ func NewBaseHandler(client client.Client, flag string) *chi.Mux {
 
 func (bh *BaseHandler) convert() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		logger.Logger.Info().Msg(req.Method + " " + req.RequestURI)
+		log.Println(req.Method + " " + req.RequestURI)
+
 		url := req.URL.Query().Get("url")
 
 		out, err := bh.client.GetInfo(url)
@@ -65,23 +89,3 @@ func (bh *BaseHandler) convert() http.HandlerFunc {
 		}
 	}
 }
-
-func recordMetrics() {
-	go func() {
-		for {
-			fi, err := os.Stat("/tmp/log")
-			if err != nil {
-				logger.Logger.Err(err).Msg("")
-			}
-			opsProcessed.Set(float64(fi.Size()))
-			time.Sleep(2 * time.Second)
-		}
-	}()
-}
-
-var (
-	opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "ctf_log_file_size",
-		Help: "Size of log file. Hello ctf hacker :) you need this file, check contents of /tmp/log",
-	})
-)
